@@ -13,8 +13,10 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 }
 
 function apiUrl(path: string): string {
-  // Relative path — Vite proxy handles /api → :4000 in dev.
-  return path
+  // In production, we use VITE_API_URL to point directly to Render.
+  // In dev, if VITE_API_URL is missing, it falls back to relative paths (using Vite proxy).
+  const baseUrl = import.meta.env.VITE_API_URL || ''
+  return `${baseUrl}${path}`
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
