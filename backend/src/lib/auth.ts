@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { supabase } from './supabaseClient'
+import { supabaseAnon } from './supabaseClient'
 
 export interface AuthUser {
   id: string
@@ -19,9 +19,10 @@ export async function extractUser(req: Request): Promise<AuthUser> {
   }
 
   const token = auth.slice(7)
-  const { data, error } = await supabase.auth.getUser(token)
+  const { data, error } = await supabaseAnon.auth.getUser(token)
 
   if (error || !data.user) {
+    console.error('getUser error:', error, 'data:', data);
     const err = new Error('Invalid or expired token') as Error & { status: number }
     err.status = 401
     throw err

@@ -60,6 +60,25 @@ export default function Forecast() {
   async function handleGenerate() {
     setError(null)
     setResult(null)
+    
+    const dStart = parseInt(dataStart)
+    const dEnd = parseInt(dataEnd)
+    const fStart = parseInt(forecastStart)
+    const fEnd = parseInt(forecastEnd)
+
+    if (isNaN(dStart) || isNaN(dEnd) || isNaN(fStart) || isNaN(fEnd)) {
+      setError('All fields must be valid years.')
+      return
+    }
+    if (dStart > dEnd) {
+      setError('Data start year must be less than or equal to data end year.')
+      return
+    }
+    if (fStart > fEnd) {
+      setError('Forecast start year must be less than or equal to forecast end year.')
+      return
+    }
+
     setLoading(true)
     try {
       const data = await apiPost<ForecastResult>('/api/forecast', {
