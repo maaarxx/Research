@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { supabaseAnon } from './supabaseClient'
+import { supabaseAnon } from './supabaseClient.js'
 
 export interface AuthUser {
   id: string

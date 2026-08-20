@@ -2,8 +2,8 @@ import { Router, Request, Response } from 'express'
 import multer from 'multer'
 import { parse as parseCsv } from 'csv-parse/sync'
 import * as XLSX from 'xlsx'
-import { getSupabase } from '../lib/supabaseClient'
-import { extractUser } from '../lib/auth'
+import { supabase } from '../lib/supabaseClient.js'
+import { extractUser } from '../lib/auth.js'
 
 const router = Router()
 const upload = multer({
