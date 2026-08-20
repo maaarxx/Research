@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
-import { getSupabase } from '../lib/supabaseClient'
-import { extractUser } from '../lib/auth'
+import { getSupabase } from '../lib/supabaseClient.js'
+import { extractUser } from '../lib/auth.js'
 
 const router = Router()
 const FORECASTING_SERVICE_URL =
