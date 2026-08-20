@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: carbon-emissions-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: FORECASTING_SERVICE_URL
+        sync: false
+
+  - type: web
+    name: carbon-emissions-forecasting
+    runtime: python
+    rootDir: forecasting-service
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
