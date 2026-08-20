@@ -1,28 +1,73 @@
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from './lib/supabaseClient'
 import Sidebar from './components/Sidebar'
+import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import EmissionData from './pages/EmissionData'
 import Forecast from './pages/Forecast'
 import Analytics from './pages/Analytics'
 import ModelAccuracy from './pages/ModelAccuracy'
 import Reports from './pages/Reports'
-// Login is intentionally not wired into route protection yet — that
-// belongs to the Supabase Auth phase (see README "Next steps").
-// import Login from './pages/Login'
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout({
+  children,
+  onSignOut,
+}: {
+  children: React.ReactNode
+  onSignOut: () => void
+}) {
   return (
-    <div className="flex">
-      <Sidebar />
-      <main className="flex-1">{children}</main>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar onSignOut={onSignOut} />
+      <main className="flex-1 overflow-auto">{children}</main>
     </div>
   )
 }
 
 export default function App() {
+  // `undefined` = still loading; `null` = no session; Session = authenticated
+  const [session, setSession] = useState<Session | null | undefined>(undefined)
+
+  useEffect(() => {
+    // Seed initial session from storage
+    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+
+    // Keep in sync with sign-in / sign-out / token refresh
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    // onAuthStateChange fires SIGNED_OUT → setSession(null) automatically
+  }
+
+  // ── Loading splash ─────────────────────────────────────────────────────────
+  if (session === undefined) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+          <p className="text-sm text-gray-400">Loading…</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Unauthenticated ────────────────────────────────────────────────────────
+  if (!session) {
+    return <Login />
+  }
+
+  // ── Authenticated ──────────────────────────────────────────────────────────
   return (
     <BrowserRouter>
-      <Layout>
+      <Layout onSignOut={handleSignOut}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/emissions" element={<EmissionData />} />

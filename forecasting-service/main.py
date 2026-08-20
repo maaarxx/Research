@@ -1,20 +1,19 @@
 """
 Forecasting service (Python / FastAPI).
 
-Responsibilities (per project spec):
-- data preparation for forecasting
-- separate ETS models per emission factor (electricity, transportation, waste)
-- forecast evaluation (MAE, RMSE, MAPE)
-- returning structured JSON to the Node.js backend
-
-Node.js is the only caller of this service — the React frontend never
-talks to it directly.
+Responsibilities:
+- Accept historical series from the Node.js backend
+- Run separate ETS models per emission factor (electricity, transportation, waste)
+- Compute MAE, RMSE, MAPE against a holdout split
+- Return structured forecast JSON to the backend (React never calls this directly)
 """
 
 from typing import Dict, List
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+
+from app.models.ets import run_ets
 
 app = FastAPI(title="Carbon Emission Forecasting Service")
 
@@ -25,31 +24,34 @@ def health():
 
 
 class ForecastRequest(BaseModel):
-    dataStartPeriod: str
-    dataEndPeriod: str
-    forecastStartPeriod: str
-    forecastEndPeriod: str
-    # series will hold historical values per factor, e.g.
-    # {"electricity": [...], "transportation": [...], "waste": [...]}
+    dataStartPeriod: int
+    dataEndPeriod: int
+    forecastStartPeriod: int
+    forecastEndPeriod: int
+    # Historical series per factor, in chronological order
     series: Dict[str, List[float]] = {}
+    # years: historical year sequence sent by the Node backend
+    years: List[int] = []
+    # horizon can be computed from periods or passed explicitly
+    horizon: int = 0
 
 
 @app.post("/forecast")
 def forecast(req: ForecastRequest):
     """
-    STUB — does not run ETS yet. Returns the JSON shape defined in the
-    spec (section 10) with null values, so the Node <-> Python contract
-    can be wired and tested end-to-end before the real model is built.
-
-    Next step: implement app/models/ets.py — run
-    statsmodels.tsa.holtwinters.ExponentialSmoothing separately per
-    factor, then compute MAE/RMSE/MAPE against a holdout split.
+    Run real ETS forecasting for each emission factor.
+    Returns forecast values + MAE/RMSE/MAPE metrics.
     """
-    factors = ["electricity", "transportation", "waste"]
-    return {
-        "forecast": {factor: [] for factor in factors} | {"total": []},
-        "metrics": {
-            factor: {"mae": None, "rmse": None, "mape": None} for factor in factors
-        },
-        "note": "Stub response — real ETS forecasting not implemented yet.",
-    }
+    horizon = req.horizon if req.horizon > 0 else (
+        req.forecastEndPeriod - req.forecastStartPeriod + 1
+    )
+    if horizon < 1:
+        horizon = 1
+
+    result = run_ets(
+        series_dict=req.series,
+        horizon=horizon,
+        years=req.years if req.years else None,
+        forecast_start_period=req.forecastStartPeriod,
+    )
+    return result
