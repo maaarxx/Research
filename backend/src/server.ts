@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import emissionsRouter from './routes/emissions'
-import forecastRouter from './routes/forecast'
+import emissionsRouter from './routes/emissions.js'
+import forecastRouter from './routes/forecast.js'
 
 const app = express()
 const PORT = process.env.PORT ?? 4000
