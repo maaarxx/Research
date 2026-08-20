@@ -131,3 +131,13 @@ create policy "Users manage metrics for their own forecast runs"
         and forecast_runs.user_id = auth.uid()
     )
   );
+
+-- ==========================================================
+-- 6. Table-level privileges
+--    RLS policies control which ROWS are visible; GRANT controls
+--    whether the role can touch the table at all.
+-- ==========================================================
+grant select, insert, update, delete on public.emission_records  to authenticated;
+grant select, insert, update, delete on public.forecast_runs     to authenticated;
+grant select, insert, update, delete on public.forecast_results  to authenticated;
+grant select, insert, update, delete on public.forecast_metrics  to authenticated;

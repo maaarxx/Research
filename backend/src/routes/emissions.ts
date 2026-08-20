@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express'
 import multer from 'multer'
 import { parse as parseCsv } from 'csv-parse/sync'
 import * as XLSX from 'xlsx'
-import { supabase } from '../lib/supabaseClient'
+import { getSupabase } from '../lib/supabaseClient'
 import { extractUser } from '../lib/auth'
 
 const router = Router()
@@ -193,6 +193,7 @@ router.post('/confirm', async (req: Request, res: Response) => {
     waste_emissions: r.waste!,
   }))
 
+  const supabase = getSupabase(req)
   const { data, error } = await supabase
     .from('emission_records')
     .upsert(inserts, { onConflict: 'user_id,year' })
@@ -218,6 +219,7 @@ router.get('/summary', async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
+  const supabase = getSupabase(req)
   const { data, error } = await supabase
     .from('emission_records')
     .select(
@@ -261,6 +263,7 @@ router.get('/trends', async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
+  const supabase = getSupabase(req)
   const { data, error } = await supabase
     .from('emission_records')
     .select(
@@ -293,6 +296,7 @@ router.get('/', async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
+  const supabase = getSupabase(req)
   const { data, error } = await supabase
     .from('emission_records')
     .select('*')
@@ -315,6 +319,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
+  const supabase = getSupabase(req)
   const { error } = await supabase
     .from('emission_records')
     .delete()

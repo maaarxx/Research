@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import { supabase } from '../lib/supabaseClient'
+import { getSupabase } from '../lib/supabaseClient'
 import { extractUser } from '../lib/auth'
 
 const router = Router()
@@ -41,6 +41,8 @@ router.post('/', async (req: Request, res: Response) => {
   } catch {
     return res.status(401).json({ error: 'Unauthorized' })
   }
+
+  const supabase = getSupabase(req)
 
   const { dataStartPeriod, dataEndPeriod, forecastStartPeriod, forecastEndPeriod } =
     req.body ?? {}
@@ -187,6 +189,8 @@ router.get('/runs', async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
+  const supabase = getSupabase(req)
+
   const { data, error } = await supabase
     .from('forecast_runs')
     .select('*')
@@ -208,6 +212,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   } catch {
     return res.status(401).json({ error: 'Unauthorized' })
   }
+
+  const supabase = getSupabase(req)
 
   const { data: run, error: runError } = await supabase
     .from('forecast_runs')
